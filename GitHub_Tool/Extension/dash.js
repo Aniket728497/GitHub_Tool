@@ -1,23 +1,20 @@
 // dash.js — Content script injected into every github.com/<owner>/<repo> page
-// Responsibilities: render the trigger button, manage the side panel, call backend.
 
-const GS_BACKEND = "http://localhost:5000";
-const GS_PANEL_ID = "gs-panel";
-const GS_BTN_ID   = "gs-trigger-btn";
+const GS_BACKEND   = "http://localhost:5000";
+const GS_PANEL_ID  = "gs-panel";
+const GS_BTN_ID    = "gs-trigger-btn";
+const GS_BUBBLE_ID = "gs-bubble";
 
 // ── Guard: only run on repo root pages ───────────────────────────────────────
 (function init() {
   if (!_isRepoRoot()) return;
 
-  // Inject on first load
   _injectTriggerButton();
 
-  // Re-inject after GitHub's soft navigations (pjax / turbo)
-  document.addEventListener("turbo:render",   _injectTriggerButton);
-  document.addEventListener("pjax:end",       _injectTriggerButton);
+  document.addEventListener("turbo:render",     _injectTriggerButton);
+  document.addEventListener("pjax:end",         _injectTriggerButton);
   document.addEventListener("DOMContentLoaded", _injectTriggerButton);
 
-  // Allow popup.js to trigger analysis programmatically
   window.addEventListener("gs:analyse", (e) => {
     _runAnalysis(e.detail?.url || location.href);
   });
@@ -28,7 +25,7 @@ const GS_BTN_ID   = "gs-trigger-btn";
 
 function _injectTriggerButton() {
   if (!_isRepoRoot()) return;
-  if (document.getElementById(GS_BTN_ID)) return;   // already injected
+  if (document.getElementById(GS_BTN_ID)) return;
 
   const btn = document.createElement("button");
   btn.id = GS_BTN_ID;
@@ -38,25 +35,19 @@ function _injectTriggerButton() {
       <circle cx="12" cy="12" r="10"/>
       <path d="M12 8v4l3 3"/>
     </svg>
-    Analyse Story
+    Analyse
   `;
 
-  // Find the best anchor point on GitHub's DOM
   const anchor =
     document.querySelector("#repos-sticky-header") ||
     document.querySelector(".file-navigation") ||
     document.querySelector(".repository-content") ||
     document.querySelector("main");
 
-  if (anchor) {
-    anchor.insertAdjacentElement("beforebegin", btn);
-  } else {
-    document.body.prepend(btn);
-  }
+  if (anchor) anchor.insertAdjacentElement("beforebegin", btn);
+  else document.body.prepend(btn);
 
-  btn.addEventListener("click", () => {
-    _runAnalysis(location.href);
-  });
+  btn.addEventListener("click", () => _runAnalysis(location.href));
 }
 
 
@@ -65,7 +56,6 @@ function _injectTriggerButton() {
 async function _runAnalysis(repoUrl) {
   const btn = document.getElementById(GS_BTN_ID);
 
-  // Disable button during request
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = `
@@ -77,6 +67,7 @@ async function _runAnalysis(repoUrl) {
       Analysing…`;
   }
 
+  document.getElementById(GS_BUBBLE_ID)?.remove();
   _removePanel();
   _showLoadingPanel();
 
@@ -137,22 +128,20 @@ function _renderResultPanel(data) {
 
   const panel = _createPanelShell();
 
-  // ── Meta chips ──
   const chipsHtml = `
     <div class="gs-meta-row">
-      ${_chip("📦 " + (meta.total_commits_analyzed ?? "?") + " commits")}
-      ${_chip("🔍 " + (meta.features_detected ?? "?") + " features")}
-      ${_chip("👥 " + (meta.unique_authors ?? "?") + " authors")}
-      ${meta.language && meta.language !== "Unknown" ? _chip("💻 " + meta.language) : ""}
-      ${meta.stars ? _chip("⭐ " + _fmtNum(meta.stars)) : ""}
+      ${_chip((meta.total_commits_analyzed ?? "?") + " commits")}
+      ${_chip((meta.features_detected ?? "?") + " features")}
+      ${_chip((meta.unique_authors ?? "?") + " authors")}
+      ${meta.language && meta.language !== "Unknown" ? _chip(meta.language) : ""}
+      ${meta.stars ? _chip(_fmtNum(meta.stars) + " stars") : ""}
     </div>`;
 
-  // ── Tabs + panes ──
   panel.innerHTML += `
     ${chipsHtml}
     <div class="gs-tabs" role="tablist">
-      <button class="gs-tab gs-tab--active" data-pane="story" role="tab">📝 Story</button>
-      <button class="gs-tab"               data-pane="chart" role="tab">📊 Chart</button>
+      <button class="gs-tab gs-tab--active" data-pane="story" role="tab">Code Evolution</button>
+      <button class="gs-tab"               data-pane="chart" role="tab">Insights</button>
     </div>
     <div class="gs-body">
       <div class="gs-pane gs-pane--active" id="gs-pane-story">
@@ -168,7 +157,6 @@ function _renderResultPanel(data) {
 
   document.body.appendChild(panel);
 
-  // Wire up tab switching
   panel.querySelectorAll(".gs-tab").forEach(tab => {
     tab.addEventListener("click", () => {
       panel.querySelectorAll(".gs-tab, .gs-pane").forEach(el => {
@@ -189,7 +177,6 @@ function _renderErrorPanel(message) {
   const panel = _createPanelShell();
   panel.innerHTML += `
     <div class="gs-error">
-      <span class="gs-error-icon">⚠️</span>
       <p>${_escHtml(message)}</p>
       <p class="gs-error-hint">
         Make sure the Flask server is running on <code>localhost:5000</code>
@@ -208,13 +195,17 @@ function _createPanelShell() {
 
   panel.innerHTML = `
     <div class="gs-header">
-      <span class="gs-header-logo">📖</span>
       <span class="gs-header-title">GitHub Analytics</span>
-      <button class="gs-close-btn" title="Close panel" aria-label="Close">✕</button>
+      <button class="gs-close-btn" title="Minimise" aria-label="Minimise">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
     </div>`;
 
   panel.querySelector(".gs-close-btn")
-       .addEventListener("click", _removePanel);
+       .addEventListener("click", _minimiseToPanel);
 
   return panel;
 }
@@ -224,25 +215,48 @@ function _removePanel() {
 }
 
 
-// ── Markdown → HTML (minimal, safe) ──────────────────────────────────────────
+// ── Floating bubble ───────────────────────────────────────────────────────────
+
+function _minimiseToPanel() {
+  _removePanel();
+
+  if (document.getElementById(GS_BUBBLE_ID)) return;
+
+  const bubble = document.createElement("button");
+  bubble.id = GS_BUBBLE_ID;
+  bubble.title = "Open GitHub Analytics";
+  bubble.innerHTML = `
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M12 8v4l3 3"/>
+    </svg>`;
+
+  bubble.addEventListener("click", () => {
+    bubble.remove();
+    _runAnalysis(location.href);
+  });
+
+  document.body.appendChild(bubble);
+}
+
+
+// ── Markdown → HTML ───────────────────────────────────────────────────────────
 
 function _mdToHtml(md) {
+  // Strip emoji
+  md = md.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\u{1F300}-\u{1F9FF}]/gu, "").trim();
+
   return md
-    // Escape raw HTML first
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    // Headings
-    .replace(/^# (.+)$/gm,   "<h1>$1</h1>")
-    .replace(/^## (.+)$/gm,  "<h2>$1</h2>")
-    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
-    // Blockquote
+    .replace(/^# (.+)$/gm,    "<h1>$1</h1>")
+    .replace(/^## (.+)$/gm,   "<h2>$1</h2>")
+    .replace(/^### (.+)$/gm,  "<h3>$1</h3>")
     .replace(/^&gt; (.+)$/gm, "<blockquote>$1</blockquote>")
-    // HR
-    .replace(/^---$/gm, "<hr>")
-    // Bold / italic / code
+    .replace(/^---$/gm,        "<hr>")
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.+?)\*/g,     "<em>$1</em>")
     .replace(/`([^`]+)`/g,     "<code>$1</code>")
-    // Line breaks → paragraphs
     .replace(/\n\n+/g, "</p><p>")
     .replace(/\n/g, "<br>")
     .replace(/^/, "<p>").replace(/$/, "</p>");
