@@ -196,16 +196,17 @@ function _createPanelShell() {
   panel.innerHTML = `
     <div class="gs-header">
       <span class="gs-header-title">GitHub Analytics</span>
-      <button class="gs-close-btn" title="Minimise" aria-label="Minimise">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-      </button>
     </div>`;
 
-  panel.querySelector(".gs-close-btn")
-       .addEventListener("click", _minimiseToPanel);
+  // Click outside the panel to minimise
+  setTimeout(() => {
+    document.addEventListener("click", function _outsideClick(e) {
+      if (!document.getElementById(GS_PANEL_ID)?.contains(e.target)) {
+        document.removeEventListener("click", _outsideClick);
+        _minimiseToPanel();
+      }
+    });
+  }, 300);
 
   return panel;
 }
@@ -222,6 +223,40 @@ function _minimiseToPanel() {
 
   if (document.getElementById(GS_BUBBLE_ID)) return;
 
+  // Inject bubble styles inline so CSS caching can never break this
+  if (!document.getElementById("gs-bubble-style")) {
+    const s = document.createElement("style");
+    s.id = "gs-bubble-style";
+    s.textContent = `
+      #gs-bubble {
+        position: fixed !important;
+        right: 18px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        z-index: 2147483647 !important;
+        width: 48px !important;
+        height: 48px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: linear-gradient(135deg, #7928ca 0%, #ff0080 100%) !important;
+        border: none !important;
+        cursor: pointer !important;
+        color: #fff !important;
+        box-shadow: 0 4px 20px rgba(121,40,202,0.55) !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      #gs-bubble:hover {
+        transform: translateY(-50%) scale(1.12) !important;
+        box-shadow: 0 6px 28px rgba(255,0,128,0.6) !important;
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
   const bubble = document.createElement("button");
   bubble.id = GS_BUBBLE_ID;
   bubble.title = "Open GitHub Analytics";
@@ -234,6 +269,7 @@ function _minimiseToPanel() {
 
   bubble.addEventListener("click", () => {
     bubble.remove();
+    document.getElementById("gs-bubble-style")?.remove();
     _runAnalysis(location.href);
   });
 
