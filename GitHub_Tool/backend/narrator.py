@@ -28,7 +28,6 @@ def generate_story(
     A Markdown string ready to be rendered in the extension panel.
     """
     sections = [
-        _header(owner, repo, stats, meta),
         _summary_block(stats),
         "---",
         _feature_sections(features),
@@ -77,8 +76,8 @@ def _summary_block(stats: dict) -> str:
     return (
         f"> Analysed **{total:,} meaningful commits** across "
         f"**{authors}** contributor{'s' if authors != 1 else ''}"
-        f"{date_range} (**{span} days** of active work).\n"
-        f"> Top contributors: {contributors_str}."
+        f"{date_range} (**{span} days** of active work). "
+        f"Top contributors: {contributors_str}."
     )
 
 

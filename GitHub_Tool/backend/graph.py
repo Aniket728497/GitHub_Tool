@@ -150,17 +150,20 @@ def _draw_feature_donut(ax: plt.Axes, features: list[dict]) -> None:
             color=CHART_TEXT_SECONDARY, fontsize=9, fontfamily="monospace")
 
     ax.legend(
-    wedges, labels,
-    loc="center left",
-    bbox_to_anchor=(1.05, 0.5),
-    frameon=False,
-    labelcolor=CHART_TEXT_SECONDARY,
-    fontsize=8,
-)
+        wedges, labels,
+        loc="center left",
+        bbox_to_anchor=(1.02, 0.5),
+        frameon=False,
+        labelcolor=CHART_TEXT_SECONDARY,
+        fontsize=8,
+    )
     ax.set_title(
         "Commits by Feature", color=CHART_TEXT_PRIMARY,
         fontsize=13, fontweight="bold", pad=14,
+        loc="left",
     )
+    # Shift pie to the left so legend sits neatly beside it
+    ax.set_position([0.02, 0.05, 0.5, 0.9])
 
 
 def _draw_timeline(ax: plt.Axes, features: list[dict]) -> None:
