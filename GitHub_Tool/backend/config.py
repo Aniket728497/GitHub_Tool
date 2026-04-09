@@ -12,6 +12,10 @@ if os.path.exists(_env_path):
                 _k, _, _v = _line.partition("=")
                 os.environ.setdefault(_k.strip(), _v.strip())
 
+# ── Ollama ────────────────────────────────────────────────────────────────────
+OLLAMA_URL   = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma4:e2b")
+
 # ── GitHub API ────────────────────────────────────────────────────────────────
 GITHUB_TOKEN   = os.environ.get("GITHUB_TOKEN", "")
 GITHUB_API_URL = "https://api.github.com"
