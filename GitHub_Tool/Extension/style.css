@@ -1,0 +1,430 @@
+/* style.css — GitHub Storyteller extension styles
+   Injected into all github.com/<owner>/<repo> pages via manifest content_scripts.
+   All class names are prefixed with "gs-" to avoid collisions with GitHub's own CSS.
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=Syne:wght@700;800&display=swap');
+
+
+/* ═══════════════════════════════════════════════════════════════
+   TRIGGER BUTTON
+═══════════════════════════════════════════════════════════════ */
+
+#gs-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 10px 16px 4px;
+  padding: 8px 18px;
+
+  background: linear-gradient(135deg, #7928ca 0%, #ff0080 100%);
+  color: #ffffff;
+
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+  z-index: 9000;
+
+  box-shadow:
+    0 0 0 1px rgba(255, 0, 128, 0.25),
+    0 4px 18px rgba(121, 40, 202, 0.35);
+
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+#gs-trigger-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(255, 0, 128, 0.4),
+    0 8px 28px rgba(255, 0, 128, 0.45);
+}
+
+#gs-trigger-btn:active {
+  transform: translateY(0);
+}
+
+#gs-trigger-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+#gs-trigger-btn svg {
+  flex-shrink: 0;
+}
+
+/* Spin animation for the button icon while loading */
+.gs-btn-spin {
+  animation: gs-spin 1s linear infinite;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDE PANEL — SHELL
+═══════════════════════════════════════════════════════════════ */
+
+#gs-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(520px, 100vw);
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  background-color: #0d1117;
+  border-left: 1px solid #21262d;
+  box-shadow: -8px 0 60px rgba(0, 0, 0, 0.75);
+
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: #c9d1d9;
+
+  z-index: 99999;
+  overflow: hidden;
+
+  animation: gs-slide-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes gs-slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PANEL HEADER
+═══════════════════════════════════════════════════════════════ */
+
+.gs-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 18px 12px;
+
+  background: #161b22;
+  border-bottom: 1px solid #21262d;
+  flex-shrink: 0;
+
+  /* Subtle stripe texture */
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 8px,
+    rgba(255, 255, 255, 0.015) 8px,
+    rgba(255, 255, 255, 0.015) 16px
+  );
+}
+
+.gs-header-logo {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.gs-header-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  color: #e6edf3;
+  letter-spacing: -0.3px;
+  flex: 1;
+}
+
+.gs-close-btn {
+  background: none;
+  border: none;
+  color: #8b949e;
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px 7px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.gs-close-btn:hover {
+  background: #21262d;
+  color: #e6edf3;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   META CHIPS ROW
+═══════════════════════════════════════════════════════════════ */
+
+.gs-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 16px 9px;
+  background: #0d1117;
+  border-bottom: 1px solid #21262d;
+  flex-shrink: 0;
+}
+
+.gs-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 20px;
+  font-size: 10px;
+  color: #8b949e;
+  white-space: nowrap;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   TABS
+═══════════════════════════════════════════════════════════════ */
+
+.gs-tabs {
+  display: flex;
+  background: #161b22;
+  border-bottom: 1px solid #21262d;
+  flex-shrink: 0;
+}
+
+.gs-tab {
+  flex: 1;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8b949e;
+
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.gs-tab:hover:not(.gs-tab--active) {
+  color: #c9d1d9;
+}
+
+.gs-tab--active {
+  color: #e6edf3;
+  border-bottom-color: #ff0080;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   BODY / PANES
+═══════════════════════════════════════════════════════════════ */
+
+.gs-body {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.gs-pane {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: 22px 22px 28px;
+  display: none;
+}
+
+.gs-pane--active {
+  display: block;
+}
+
+/* Scrollbar */
+.gs-pane::-webkit-scrollbar         { width: 5px; }
+.gs-pane::-webkit-scrollbar-track   { background: #0d1117; }
+.gs-pane::-webkit-scrollbar-thumb   { background: #30363d; border-radius: 3px; }
+.gs-pane::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   STORY TYPOGRAPHY
+═══════════════════════════════════════════════════════════════ */
+
+.gs-story-content h1 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  color: #e6edf3;
+  margin: 0 0 10px;
+  line-height: 1.25;
+}
+
+.gs-story-content h2 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: #e6edf3;
+  margin: 24px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #21262d;
+}
+
+.gs-story-content h3 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: #e6edf3;
+  margin: 22px 0 6px;
+  padding-left: 11px;
+  border-left: 3px solid #ff0080;
+  line-height: 1.4;
+}
+
+.gs-story-content blockquote {
+  margin: 10px 0 18px;
+  padding: 10px 16px;
+  background: #161b22;
+  border-left: 3px solid #7928ca;
+  border-radius: 0 6px 6px 0;
+  color: #8b949e;
+  font-style: italic;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.gs-story-content hr {
+  border: none;
+  border-top: 1px solid #21262d;
+  margin: 18px 0;
+}
+
+.gs-story-content p {
+  margin: 0 0 10px;
+  line-height: 1.7;
+  font-size: 12.5px;
+  color: #c9d1d9;
+}
+
+.gs-story-content strong {
+  color: #e6edf3;
+  font-weight: 600;
+}
+
+.gs-story-content em {
+  color: #a5d6ff;
+  font-style: normal;
+}
+
+.gs-story-content code {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 11px;
+  color: #ff7b72;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   CHART PANE
+═══════════════════════════════════════════════════════════════ */
+
+.gs-chart-img {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #21262d;
+  display: block;
+}
+
+.gs-no-chart {
+  color: #8b949e;
+  font-size: 12px;
+  text-align: center;
+  padding-top: 40px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   LOADING STATE
+═══════════════════════════════════════════════════════════════ */
+
+.gs-loading {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px;
+  text-align: center;
+}
+
+.gs-spinner {
+  width: 38px;
+  height: 38px;
+  border: 3px solid #21262d;
+  border-top-color: #ff0080;
+  border-right-color: #7928ca;
+  border-radius: 50%;
+  animation: gs-spin 0.85s linear infinite;
+}
+
+@keyframes gs-spin {
+  to { transform: rotate(360deg); }
+}
+
+.gs-loading-text {
+  color: #c9d1d9;
+  font-size: 13px;
+  margin: 0;
+}
+
+.gs-loading-sub {
+  color: #484f58;
+  font-size: 11px;
+  margin: 0;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   ERROR STATE
+═══════════════════════════════════════════════════════════════ */
+
+.gs-error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 36px 28px;
+  text-align: center;
+}
+
+.gs-error-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.gs-error p {
+  color: #f85149;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.gs-error-hint {
+  color: #8b949e !important;
+  font-size: 11px !important;
+}
+
+.gs-error code {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 11px;
+  color: #ff7b72;
+}

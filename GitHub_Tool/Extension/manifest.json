@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "GitHub Analytics",
+  "version": "1.0.0",
+  "description": "Turn any GitHub repo's commit history into a clean narrative + visual analytics. One click — no separate app.",
+
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+
+  "host_permissions": [
+    "https://github.com/*",
+    "http://localhost:5000/*"
+  ],
+
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*/*"],
+      "js":  ["dash.js"],
+      "css": ["style.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
