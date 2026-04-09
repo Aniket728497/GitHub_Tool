@@ -28,7 +28,7 @@ def parse_repo_url(url: str) -> tuple[str | None, str | None]:
     if not match:
         return None, None
     owner = match.group(1)
-    repo  = match.group(2).rstrip(".git").rstrip("/")
+    repo  = match.group(2).removesuffix(".git").removesuffix("/")
     return owner, repo
 
 
